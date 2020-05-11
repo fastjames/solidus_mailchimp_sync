@@ -38,7 +38,7 @@ module SolidusMailchimpSync
     def sync
       # If we don't have a user with an email address we can't sync -- mailchimp
       # carts and orders require a customer, which requires an email address.
-      unless model.user.present? && model.user.send(UserSynchronizer.email_address_attribute).present?
+      unless model_has_email?
         return nil
       end
 
@@ -60,7 +60,7 @@ module SolidusMailchimpSync
     rescue SolidusMailchimpSync::Error => e
       tries ||= 0 ; tries += 1
       if tries <= 1 && user_not_synced_error?(e)
-        SolidusMailchimpSync::UserSynchronizer.new(model.user).sync
+        sync_order_user
         retry
       else
         raise e
@@ -103,6 +103,23 @@ module SolidusMailchimpSync
 
     def create_order_path
       "/orders"
+    end
+
+    private
+
+    def model_has_email?
+      model.email.present? || (model.user.present? && model.user.send(UserSynchronizer.email_address_attribute).present?)
+    end
+
+    def sync_order_user
+      unless model.user.present?
+        # try to create a new local user
+        Spree.user_class.transaction do
+          model.user = Spree.user_class.create(team: model.store.team, email: model.email, password: 'aabb9755')
+          model.save
+        end
+      end
+      SolidusMailchimpSync::UserSynchronizer.new(model.user).sync
     end
   end
 end

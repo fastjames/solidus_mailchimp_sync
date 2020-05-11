@@ -185,6 +185,7 @@ describe SolidusMailchimpSync::OrderSynchronizer, vcr: true do
       response_line = response["lines"].find {|h| h["id"] == line_item.id.to_s }
       expect(response_line).to be_present
 
+      byebug
       expect(response_line["product_variant_id"]).to eq(line_item.variant.id.to_s)
       expect(response_line["product_id"]).to eq(line_item.product.id.to_s)
       expect(response_line["quantity"]).to eq(line_item.quantity)

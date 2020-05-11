@@ -6,7 +6,7 @@ module SolidusMailchimpSync
     # Since Mailchimp API 3.0 doesn't let us update products, important to wait
     # until product is really ready to sync it the first time.
     class_attribute :only_auto_sync_if
-    self.only_auto_sync_if = lambda { |p| p.available? }
+    self.only_auto_sync_if = lambda { |p| p.available? && p.description.present? }
 
     def should_sync?
        only_auto_sync_if.call(model) && super
