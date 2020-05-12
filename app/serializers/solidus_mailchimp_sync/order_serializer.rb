@@ -13,10 +13,11 @@ module SolidusMailchimpSync
     end
 
     def as_json
+      order_user = order.user || Spree.user_class.new(email: order.email)
       hash = {
         id: order.id.to_s,
         customer: {
-          id: UserSynchronizer.customer_id(order.user)
+          id: UserSynchronizer.customer_id(order_user)
         },
         currency_code: order.currency,
         order_total: order.total.to_f,
