@@ -13,7 +13,12 @@ module SolidusMailchimpSync
     end
 
     def as_json
-      order_user = order.user || Spree.user_class.new(email: order.email)
+      # TODO: an unsaved Order can't be serialized. Maybe remove the User
+      # section from hash before returning it? We already have the
+      # customer section.
+      #
+      # What we really need is a properly covering test set.
+      order_user = order.user || Spree.user_class.where(email: order.email).first_or_initialize
       hash = {
         id: order.id.to_s,
         customer: {
